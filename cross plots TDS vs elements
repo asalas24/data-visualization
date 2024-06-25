@@ -1,0 +1,44 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+# Load the Excel file
+file_path = 'documents/lithium RTX lab/cross plots .xlsx'
+data = pd.read_excel('cross plots .xlsx')
+
+# Drop rows with any NaN values
+data = data.dropna()
+
+# Extract the column names for the elements (excluding TDS)
+elements = data.columns[1:]
+
+# Create a plot for each element
+for element in elements:
+    x = data[element].values.reshape(-1, 1)
+    y = data['est. TDS (ppm)'].values.reshape(-1, 1)
+    
+    # Perform linear regression
+    reg = LinearRegression().fit(x, y)
+    y_pred = reg.predict(x)
+    
+    # Calculate percentage of the element compared to TDS
+    percentage = (data[element] / data['est. TDS (ppm)']) * 100
+
+    plt.figure()
+    plt.scatter(data[element], data['est. TDS (ppm)'], label=element, alpha=0.7, edgecolors='w')
+    plt.plot(data[element], y_pred, color='red', label='Regression Line')
+    plt.title(f'TDS vs {element}')
+    plt.xlabel(f'{element} (mg/L)')
+    plt.ylabel('TDS (mg/L)')
+    plt.legend()
+    
+    # Create a secondary y-axis for the percentage
+    ax1 = plt.gca()
+    ax2 = ax1.twinx()
+    ax2.scatter(data[element], percentage, color='green', alpha=0.7, marker='*', label=f'{element} as % of TDS')
+    ax2.set_ylabel(f'{element} as % of TDS', color='green')
+    ax2.tick_params(axis='y', labelcolor='green')
+    
+    plt.grid(True)
+    plt.savefig(f'lithium rtx lab.png')  # Save the figure
+    plt.show()
